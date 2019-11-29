@@ -1,10 +1,11 @@
-#include <iostream>
+// #include <iostream>
 
 #include "operation.h"
 
 BasicOperation::BasicOperation(): len(0) {}
 BasicOperation::BasicOperation(int len): len(len) {}
 BasicOperation::~BasicOperation() {}
+OpType BasicOperation::getType() { return OpType::Other; }
 int BasicOperation::length() const{ return len; }
 
 InsertOp::InsertOp(): str("") {}

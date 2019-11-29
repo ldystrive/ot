@@ -8,6 +8,7 @@ enum class OpType {
     Insert,
     Retain,
     Delete,
+    Other,
 };
 
 class BasicOperation {
@@ -15,7 +16,7 @@ public:
     BasicOperation();
     BasicOperation(int);
     virtual ~BasicOperation();
-    virtual OpType getType() = 0;
+    virtual OpType getType();
     int length() const;
 private:
     int len;
