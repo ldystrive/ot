@@ -73,7 +73,7 @@ public:
     Operation addDelete(const DeleteOp&);
     Operation addRetain(const RetainOp&);
 
-    std::string apply(std::string, int);
+    std::string apply(std::string);
 
 
 private:

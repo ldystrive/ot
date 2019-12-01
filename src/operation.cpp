@@ -65,8 +65,36 @@ Operation Operation::addInsert(const InsertOp& op) {
     return *this;
 }
 
-std::string Operation::apply(std::string str, int len) {
-    if (len != baseLength) {
+Operation Operation::addRetain(const RetainOp& op) {
+    if (op.length() == 0) return *this;
+    baseLength += op.length();
+    targetLength += op.length();
+
+    if (ops[ops.size()-1]->getType() == OpType::Retain) {
+        auto lastOp = dynamic_pointer_cast<RetainOp> (ops[ops.size()-1]);
+        ops[ops.size()-1] = make_shared<RetainOp>(op + (*lastOp));
+    }
+    else {
+        ops.push_back(make_shared<RetainOp>(op));
+    }
+    return *this;
+}
+
+Operation Operation::addDelete(const DeleteOp& op) {
+    if (op.length() == 0) return *this;
+    baseLength += op.length();
+    if (ops[ops.size()-1]->getType() == OpType::Delete) {
+        auto lastOp = dynamic_pointer_cast<DeleteOp> (ops[ops.size()-1]);
+        ops[ops.size()-1] = make_shared<DeleteOp>(op+(*lastOp));
+    }
+    else {
+        ops.push_back(make_shared<DeleteOp>(op));
+    }
+    return *this;
+}
+
+std::string Operation::apply(std::string str) {
+    if (str.length() != baseLength) {
         std::cerr << "The operation's base length must be equal to the string's length." << std::endl;        
         return std::string();
     }
@@ -75,7 +103,7 @@ std::string Operation::apply(std::string str, int len) {
     int strIndex = 0;
     for (auto op : ops) {
         if (op->getType() == OpType::Retain) {
-            if (strIndex + op->length() > len) {
+            if (strIndex + op->length() > str.length()) {
                 std::cerr << "Operation can't retain more characters than are left in the string." << std::endl;
                 return std::string();
             }
@@ -95,3 +123,4 @@ std::string Operation::apply(std::string str, int len) {
     }
     return newStr;
 }
+
