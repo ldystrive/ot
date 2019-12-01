@@ -2,4 +2,4 @@
 *.so
 
 build/
-.vscode/
+.vscode/*

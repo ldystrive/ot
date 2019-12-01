@@ -3,12 +3,12 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 enum class OpType {
     Insert,
     Retain,
     Delete,
-    Other,
 };
 
 class BasicOperation {
@@ -16,7 +16,7 @@ public:
     BasicOperation();
     BasicOperation(int);
     virtual ~BasicOperation();
-    virtual OpType getType();
+    virtual OpType getType() = 0;
     int length() const;
 private:
     int len;
@@ -25,9 +25,10 @@ private:
 class InsertOp : public BasicOperation {
 public:
     InsertOp();
-    InsertOp(int, std::string);
-    ~InsertOp();
-    OpType getType();
+    InsertOp(std::string);
+    InsertOp(const InsertOp&);
+    virtual ~InsertOp();
+    virtual OpType getType();
     std::string getStr() const;
     InsertOp operator + (const InsertOp&) const;
 private:
@@ -38,8 +39,9 @@ class RetainOp : public BasicOperation {
 public:
     RetainOp();
     RetainOp(int);
-    ~RetainOp();
-    OpType getType();
+    RetainOp(const RetainOp&);
+    virtual ~RetainOp();
+    virtual OpType getType();
     RetainOp operator + (const RetainOp&) const;
 };
 
@@ -47,8 +49,9 @@ class DeleteOp : public BasicOperation {
 public:
     DeleteOp();
     DeleteOp(int);
-    ~DeleteOp();
-    OpType getType();
+    DeleteOp(const DeleteOp&);
+    virtual ~DeleteOp();
+    virtual OpType getType();
     DeleteOp operator + (const DeleteOp&) const;
 };
 
@@ -70,11 +73,11 @@ public:
     Operation addDelete(const DeleteOp&);
     Operation addRetain(const RetainOp&);
 
-    std::string apply(std::string);
+    std::string apply(std::string, int);
 
 
 private:
-    std::vector<BasicOperation> ops;
+    std::vector<std::shared_ptr<BasicOperation>> ops;
     int baseLength;
     int targetLength;
 };
