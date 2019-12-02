@@ -92,17 +92,18 @@ TEST(operation, transform)
 
         string baseStr = genString(baseLength);
 
-        pair<Operation, Operation> newOps = Operation::transform(A, B);
+        pair<Operation, Operation> newOps;
+        EXPECT_NO_THROW(newOps = Operation::transform(A, B));
         Operation newA = newOps.first;
         Operation newB = newOps.second;
 
         string ans1 = newB.apply(A.apply(baseStr));
         string ans2 = newA.apply(B.apply(baseStr));
         EXPECT_EQ(ans1, ans2);
-        EXPECT_TRUE(ans1 != string(""));
-        EXPECT_TRUE(ans2 != string(""));
     }
 
-    
-
+    int baseLength = 1;
+    Operation A = genOperation(baseLength);
+    Operation B = genOperation(baseLength+1);
+    EXPECT_ANY_THROW(auto newOps = Operation::transform(A, B));
 }

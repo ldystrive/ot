@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <exception>
 #include <utility>
 
 #include "operation.h"
@@ -112,17 +113,15 @@ Operation Operation::addDelete(const DeleteOp& op) {
 }
 
 std::string Operation::apply(std::string str) {
-    if (str.length() != baseLength) {
-        std::cerr << "The operation's base length must be equal to the string's length." << std::endl;        
-        return std::string();
+    if (str.length() != baseLength) {     
+        throw logic_error("The operation's base length must be equal to the string's length.");  
     }
     std::string newStr;
     int strIndex = 0;
     for (auto op : ops) {
         if (op->getType() == OpType::Retain) {
             if (strIndex + op->length() > str.length()) {
-                std::cerr << "Operation can't retain more characters than are left in the string." << std::endl;
-                return std::string();
+                throw logic_error("Operation can't retain more characters than are left in the string.");
             }
             newStr = newStr + str.substr(strIndex, op->length());
             strIndex += op-> length();
@@ -136,7 +135,7 @@ std::string Operation::apply(std::string str) {
     }
 
     if (newStr.length() != targetLength) {
-        std::cerr << "The operation didn't operate on the whole string." << std::endl;
+        throw logic_error("The operation didn't operate on the whole string.");
     }
     return newStr;
 }
@@ -148,8 +147,7 @@ bool Operation::isNoop() {
 
 pair<Operation,Operation> Operation::transform(const Operation &A, const Operation &B) {
     if (A.baseLength != B.baseLength) {
-        cerr << "Both operations have to have the same base length" << endl;
-        return {Operation(), Operation()};
+        throw logic_error("Both operations have to have the same base length");
     }
     Operation operation1prime;
     Operation operation2prime;
@@ -184,12 +182,10 @@ pair<Operation,Operation> Operation::transform(const Operation &A, const Operati
         }
 
         if (op1It == ops1.end()) {
-            cerr << "Cannot compose operations: first operation is too short." << endl;
-            return {Operation(), Operation()};
+            throw logic_error("Cannot compose operations: first operation is too short.");
         }
         if (op2It == ops2.end()) {
-            cerr << "Cannot compose operations: first operation is too long." << endl;
-            return {Operation(), Operation()};
+            throw logic_error("Cannot compose operations: first operation is too long.");
         }
 
         auto op1 = *op1It;
@@ -266,8 +262,7 @@ pair<Operation,Operation> Operation::transform(const Operation &A, const Operati
             operation2prime.addDelete(DeleteOp(min1));
         }
         else {
-            cerr << "The two operations aren't compatible" << endl;
-            return {Operation(), Operation()};
+            throw logic_error("The two operations aren't compatible");
         }
     }
     return {operation1prime, operation2prime};
