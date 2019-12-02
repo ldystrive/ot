@@ -307,3 +307,30 @@ string Operation::toString() {
     }
     return str;
 }
+
+Operation Operation::invert(string str)
+{
+    Operation inverse;
+    int strIndex = 0;
+    if (str.length() != baseLength) {
+        throw length_error("baseLength and str's length are not equal.");
+    }
+    for (auto op : ops) {
+        if (op->getType() == OpType::Retain) {
+            inverse.addRetain(RetainOp(op->length()));
+            strIndex += op->length();
+        }
+        else if (op->getType() == OpType::Insert) {
+            inverse.addDelete(DeleteOp(op->length()));
+        }
+        else {
+            inverse.addInsert(InsertOp(str.substr(strIndex, op->length())));
+            strIndex += op->length();
+        }
+    }
+    return inverse;
+}
+
+Operation Operation::operator + (const Operation &A) const {
+    
+}

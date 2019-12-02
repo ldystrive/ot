@@ -63,6 +63,9 @@ public:
     static std::pair<Operation,Operation> transform(const Operation&, const Operation&);
 
     bool operator == (const Operation&) const;
+
+    // for string S, and a pair of operations A and B,
+    // apply(apply(S, A), B) = apply(S, A + B)
     Operation operator + (const Operation&) const;
     bool isNoop();
     
@@ -73,6 +76,9 @@ public:
     std::string apply(std::string);
     Operation clone() const;
     std::string toString();
+
+    // used for implementing undo
+    Operation invert(std::string);
 
 private:
     std::vector<std::shared_ptr<BasicOperation>> ops;

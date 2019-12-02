@@ -107,3 +107,47 @@ TEST(operation, transform)
     Operation B = genOperation(baseLength+1);
     EXPECT_ANY_THROW(auto newOps = Operation::transform(A, B));
 }
+
+TEST(operation, invert)
+{
+    Operation op;
+    string str1, str1Rst;
+    string str2;
+    Operation inverse;
+    
+    EXPECT_NO_THROW(inverse = op.invert(str1));
+    EXPECT_NO_THROW(str2 = op.apply(str1));
+    EXPECT_NO_THROW(str1Rst = inverse.apply(str2));
+    EXPECT_EQ(str1, str1Rst);
+
+    for (int i = 0; i < 100; i++) {
+        int baseLength = rand() % 300;
+        op = genOperation(baseLength);
+        str1 = genString(baseLength);
+        EXPECT_NO_THROW(str2 = op.apply(str1));
+        EXPECT_NO_THROW(inverse = op.invert(str1));
+        EXPECT_NO_THROW(str1Rst = inverse.apply(str2));
+        EXPECT_EQ(str1, str1Rst);
+    }
+}
+
+TEST(operation, compose)
+{
+    Operation A, B;
+    Operation composeAB;
+    string str1, str2, strA, strB;
+    for (int i = 0; i < 100; i++) {
+        int baseLength = rand() % 30;
+        str1 = genString(baseLength);
+        A = genOperation(baseLength);
+        EXPECT_NO_THROW(str2 = A.apply(str1));
+        
+        int targetLength = str2.length();
+        B = genOperation(targetLength);
+        EXPECT_NO_THROW(strA = B.apply(str2));
+
+        EXPECT_NO_THROW(composeAB = A + B);
+        EXPECT_NO_THROW(strB = composeAB.apply(str1));
+        EXPECT_EQ(strA, strB);
+    }
+}
