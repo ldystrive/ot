@@ -60,21 +60,19 @@ class Operation {
 public:
     Operation();
     ~Operation();
-    static Operation transform(Operation, Operation);
+    static std::pair<Operation,Operation> transform(const Operation&, const Operation&);
 
     bool operator == (const Operation&) const;
     Operation operator + (const Operation&) const;
     bool isNoop();
     
-    Operation operator + (const BasicOperation&) const;
-    
-    Operation addBasicOp(const BasicOperation&);
     Operation addInsert(const InsertOp&);
     Operation addDelete(const DeleteOp&);
     Operation addRetain(const RetainOp&);
 
     std::string apply(std::string);
-
+    Operation clone() const;
+    std::string toString();
 
 private:
     std::vector<std::shared_ptr<BasicOperation>> ops;
