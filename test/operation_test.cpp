@@ -136,8 +136,8 @@ TEST(operation, compose)
     Operation A, B;
     Operation composeAB;
     string str1, str2, strA, strB;
-    for (int i = 0; i < 100; i++) {
-        int baseLength = rand() % 30;
+    for (int i = 0; i < 1000; i++) {
+        int baseLength = rand() % 300;
         str1 = genString(baseLength);
         A = genOperation(baseLength);
         EXPECT_NO_THROW(str2 = A.apply(str1));
@@ -148,6 +148,7 @@ TEST(operation, compose)
 
         EXPECT_NO_THROW(composeAB = A + B);
         EXPECT_NO_THROW(strB = composeAB.apply(str1));
+        
         EXPECT_EQ(strA, strB);
     }
 }

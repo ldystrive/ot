@@ -332,5 +332,121 @@ Operation Operation::invert(string str)
 }
 
 Operation Operation::operator + (const Operation &A) const {
-    
+    if (targetLength != A.baseLength) {
+        throw length_error("The base length of the second operation has to be the target length of the first operation");
+    }
+
+    Operation operation;
+    Operation copyOp1 = this->clone();
+    Operation copyOp2 = A.clone();
+    auto ops1 = copyOp1.ops;
+    auto ops2 = copyOp2.ops;
+    auto ops1It = ops1.begin();
+    auto ops2It = ops2.begin();
+    while (true) {
+        if (ops1It == ops1.end() && ops2It == ops2.end()) {
+            break;
+        }
+        
+        if (ops1It != ops1.end() && (*ops1It)->getType() == OpType::Delete) {
+            operation.addDelete(DeleteOp((*ops1It)->length()));
+            ops1It++;
+            continue;
+        }
+        if (ops2It != ops2.end() && (*ops2It)->getType() == OpType::Insert) {
+            operation.addInsert(*dynamic_pointer_cast<InsertOp>(*ops2It));
+            ops2It++;
+            continue;
+        }
+
+        if (ops1It == ops1.end()) {
+            throw logic_error("Cannot compose operations: first operation is too short.");
+        }
+        if (ops2It == ops2.end()) {
+            throw logic_error("Cannot compose operations: first operation is too long.");
+        }
+
+        auto op1 = *ops1It;
+        auto op2 = *ops2It;
+        if (op1->getType() == OpType::Retain && op2->getType() == OpType::Retain) {
+            if (op1->length() > op2->length()) {
+                operation.addRetain(RetainOp(op2->length()));
+                *ops1It = make_shared<RetainOp>(RetainOp(op1->length() - op2->length()));
+                ops2It++;
+            }
+            else if (op1->length() == op2->length()) {
+                operation.addRetain(RetainOp(op2->length()));
+                ops1It++;
+                ops2It++;
+            }
+            else {
+                operation.addRetain(RetainOp(op1->length()));
+                *ops2It = make_shared<RetainOp>(RetainOp(op2->length() - op1->length()));
+                ops1It++;
+            }
+        }
+        else if (op1->getType() == OpType::Insert && op2->getType() == OpType::Delete) {
+            if (op1->length() > op2->length()) {
+                InsertOp tmp = *dynamic_pointer_cast<InsertOp>(op1);
+                *ops1It = make_shared<InsertOp>(InsertOp(tmp.getStr().substr(op2->length())));
+                ops2It++;
+            }
+            else if (op1->length() == op2->length()) {
+                ops1It++;
+                ops2It++;
+            }
+            else {
+                *ops2It = make_shared<DeleteOp>(DeleteOp(op2->length() - op1->length()));
+                ops1It++;
+            }
+        }
+        else if (op1->getType() == OpType::Insert && op2->getType() == OpType::Retain) {
+            if (op1->length() > op2->length()) {
+                InsertOp tmp = *dynamic_pointer_cast<InsertOp>(op1);
+                operation.addInsert(InsertOp(tmp.getStr().substr(0, op2->length())));
+                *ops1It = make_shared<InsertOp>(InsertOp(tmp.getStr().substr(op2->length())));
+                ops2It++;
+            }
+            else if (op1->length() == op2->length()) {
+                InsertOp tmp = *dynamic_pointer_cast<InsertOp>(op1);
+                operation.addInsert(InsertOp(tmp));
+                ops1It++;
+                ops2It++;
+            }
+            else {
+                InsertOp tmp = *dynamic_pointer_cast<InsertOp>(op1);
+                operation.addInsert(InsertOp(tmp));
+                *ops2It = make_shared<RetainOp>(RetainOp(op2->length() - op1->length()));
+                ops1It++;
+            }
+        }
+        else if (op1->getType() == OpType::Retain && op2->getType() == OpType::Delete) {
+            if (op1->length() > op2->length()) {
+                operation.addDelete(DeleteOp(op2->length()));
+                *ops1It = make_shared<RetainOp>(RetainOp(op1->length() - op2->length()));
+                ops2It++;
+            }
+            else if (op1->length() == op2->length()) {
+                operation.addDelete(DeleteOp(op2->length()));
+                ops1It++;
+                ops2It++;
+            }
+            else {
+                operation.addDelete(DeleteOp(op1->length()));
+                *ops2It = make_shared<DeleteOp>(DeleteOp(op2->length() - op1->length()));
+                ops1It++;
+            }
+        }
+        else {
+            auto type2str = [] (OpType x) {
+                if (x == OpType::Delete) return string("Delete");
+                if (x == OpType::Retain) return string("Retain");
+                if (x == OpType::Insert) return string("Insert");
+            };
+            string str = string("this shouldn't happen: op1: ") + type2str(op1->getType());
+            str = str + ", op2: " + type2str(op2->getType());
+            throw logic_error(str);
+        }
+    }
+    return operation;
 }
